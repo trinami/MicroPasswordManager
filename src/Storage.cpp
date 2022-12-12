@@ -1,71 +1,41 @@
 #include "Storage.h"
 
-bool isIntialized()
-{
-    if(EEPROM.read(0) == B10101010 && EEPROM.read(1) == B10101010 && EEPROM.read(2) == B10101010)
-    {
-        return true;
-    }
+#include "Cryptor.h"
+#include "RStorage.h"
 
-    return false;
+uint8_t iv[HASH_SIZE] = {0};
+
+
+void readStorage()
+{
+    readKeyCount();
+    readIV();
 }
 
-bool intializeComplete()
+void writeIV()
 {
-    EEPROM.write(0, B10101010);
-    EEPROM.write(1, B10101010);
-    EEPROM.write(2, B10101010);
-    //key_count = EEPROM.read(3*HASH_SIZE+1);
+    for(uint8_t i = 0; i < HASH_SIZE; i++)
+    {
+        writeByte(iv[i], 2+i);
+    }
 }
 
-int checkStorage()
+void readIV()
 {
-    int returnCode = STORAGE_OK;
-
-    for(uint16_t i = 0; i < (STORAGE_SIZE / 3)-1; i++)
+    for(uint8_t i = 0; i < HASH_SIZE; i++)
     {
-        uint8_t byte1 = EEPROM.read(i*3+0);
-        uint8_t byte2 = EEPROM.read(i*3+1);
-        uint8_t byte3 = EEPROM.read(i*3+2);
-        
-        if(byte1 != byte2 || byte2 != byte3 || byte1 != byte3)
-        {
-            returnCode = STORAGE_RESTORED;
-
-            if(byte1 == byte2)
-            {
-                EEPROM.write(i*3+2, byte1);
-            }
-            else if(byte2 == byte3)
-            {
-                EEPROM.write(i*3+0, byte2);
-            }
-            else if(byte1 == byte3)
-            {
-                EEPROM.write(i*3+1, byte3);
-            }
-            else
-            {
-                return STORAGE_INVALID;
-            }
-        }
+        iv[i] = readByte(2+i);
     }
-
-    return returnCode;
 }
 
-void ivToEEPROM()
+void addKey(const char *key)
 {
-    for(int i = 0; i < HASH_SIZE; i++)
-    {
-        EEPROM.update(i+1, iv[i]);
-    }
-    for(int i = 0; i < HASH_SIZE; i++)
-    {
-        EEPROM.update(i+1+HASH_SIZE, iv[i]);
-    }
-    for(int i = 0; i < HASH_SIZE; i++)
-    {
-        EEPROM.update(i+1+2*HASH_SIZE, iv[i]);
-    }
+
 }
+
+void removeKey(uint8_t keyPosition);
+void importMasterKey(const char* mkey);
+bool checkIfKeyExist(const char* key);
+void moveKey(uint8_t oldPosition, uint8_t newPosition);
+
+///////////// add key?

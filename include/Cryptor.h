@@ -1,17 +1,27 @@
 #ifndef CRYPTOR_H
 #define CRYPTOR_H
 
-#define HASH_SIZE 32
-
 #include "Arduino.h"
-#include <Crypto.h>
-#include <SHA3.h>
+#include "Crypto.h"
+#include "SHA3.h"
 
-SHA3_256 sha3;
-uint8_t iv[HASH_SIZE];
-uint8_t pass_hash[HASH_SIZE];
-uint8_t hashed[HASH_SIZE];
+#include "System.h"
+#include "Storage.h"
 
-const char* charset = "!#$%&+-/123456789:<=>?@ABCDEFGHIJKLMNPQRSTUVWXYZ[\\]^_abcdefghijkmnpqrstuvwxyz";
+extern const char* charset;
+
+extern SHA3_256 sha3;
+extern uint8_t pass_hash[HASH_SIZE];
+extern uint8_t hashed[HASH_SIZE];
+
+boolean getRandomBit();
+uint8_t getRandomByte();
+void hexCharacterStringToBytes(byte *byteArray, const char *hexString);
+void dumpByteArray(const byte *byteArray, const byte arraySize);
+byte nibble(char c);
+bool isValidHexTokenString(const char *hexString, int size);
+void generateIv();
+void printMasterKey();
+void clearCryptor();
 
 #endif

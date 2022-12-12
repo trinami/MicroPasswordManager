@@ -1,19 +1,19 @@
 #ifndef STORAGE_H
 #define STORAGE_H
 
-#define STORAGE_SIZE 512
-#define STORAGE_OK 0
-#define STORAGE_RESTORED 1
-#define STORAGE_INVALID 2
-
-#define MAX_KEY_COUNT 3
-
-
 #include "Arduino.h"
-#include <EEPROM.h>
 
-uint8_t key_count = 0;
+#include "RStorage.h"
 
-int checkStorage();
+extern uint8_t iv[HASH_SIZE];
+
+void readStorage();
+void writeIV();
+void readIV();
+void addKey(const char *key);
+void removeKey(uint8_t keyPosition);
+void importMasterKey(const char* mkey);
+bool checkIfKeyExist(const char* key);
+void moveKey(uint8_t oldPosition, uint8_t newPosition);
 
 #endif

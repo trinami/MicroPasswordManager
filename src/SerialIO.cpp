@@ -1,11 +1,30 @@
 #include "SerialIO.h"
 
-void printHex(uint8_t num)
-{
-    char hexCar[2];
+#define HID_CUSTOM_LAYOUT
+#define LAYOUT_GERMAN
+#include "HID-Project.h"
 
-    sprintf(hexCar, "%02X", num);
-    Serial.print(hexCar);
+#include "System.h"
+#include "Cryptor.h"
+#include "Storage.h"
+#include "RStorage.h"
+
+char input[MAX_INPUT_SIZE+1] = {0};
+
+void intialize()
+{
+    setKeyCount(0);
+    generateIv();
+    writeIV();
+    clearScreen();
+    Serial.println("Generated intilization vector (IV).");
+    Serial.println("Please note it on a secure location:\n");
+    Serial.println(" ");
+    Serial.println(" WARNING! This token is only visible once!\n");
+    dumpByteArray(iv, HASH_SIZE);
+    Serial.println(" ");
+    anyKey();
+    writeByte(0, INTIALIZED);
 }
 
 void clearScreen()
@@ -19,7 +38,7 @@ void clearScreen()
 void clearLine()
 {
     Serial.print('\r');
-    for(int i = 0; i < MAX_INPUT_SIZE; i++)
+    for(uint8_t i = 0; i < MAX_INPUT_SIZE; i++)
     {
         Serial.print(' ');
     }
@@ -30,12 +49,13 @@ void serialReadVoid()
 {
     while(Serial.available() > 0)
     {
-        char x = Serial.read();
+        Serial.read();
     }
 }
 
 void serialReadString(char *string, int size, bool isPassword)
 {
+    clearString(string, size);
     serialReadVoid();
     int cursor = 0;
     char character = 0;
@@ -67,7 +87,7 @@ void serialReadString(char *string, int size, bool isPassword)
         clearLine();
         if(isPassword)
         {
-            for(int i = 0; i < strlen(string); i++)
+            for(uint8_t i = 0; i < strlen(string); i++)
             {
                 Serial.print('*');
             }
@@ -82,14 +102,14 @@ void serialReadString(char *string, int size, bool isPassword)
 
 void clearString(char *string, int size)
 {
-    for(int i = 0; i < size; i++)
+    for(uint8_t i = 0; i < size; i++)
     {
         string[i] = B10101010;
         delay(1);
     }
-    //string[0] = '\0';
-    memset(string, 0, sizeof(string));
-    string = {0};
+    string[0] = '\0';
+    //memset(string, 0, sizeof(string));
+    //string = {0};
 }
 
 
@@ -116,5 +136,266 @@ void anyKey()
       ;
     }
     
-    char x = Serial.read();
+    serialReadVoid();
+}
+
+uint8_t getNumber()
+{
+    const char *numbers = "0123456789";
+    uint8_t number = 0;
+    bool invalidNumber = true;
+
+    while(invalidNumber)
+    {
+        serialReadString(input, 1, false);
+        for(uint8_t i = 0; i < 10; i++)
+        {
+            if(numbers[i] == input[0])
+            {
+                number = i;
+                invalidNumber = false;
+            }
+        }
+    }
+    
+    return number;
+}
+
+void importMKey()
+{
+    Serial.println("Please type in the key to import:");
+    serialReadString(input, MAX_INPUT_SIZE, false);
+    Serial.println();
+    if(isValidHexTokenString(input, strlen(input)))
+    {
+        hexCharacterStringToBytes(iv, input);
+        writeIV();
+        Serial.println("Imported. Trying to restart...");
+        restartCountdown();
+    }
+    else
+    {
+        Serial.println("Error, invalid Token!");
+    }
+    Serial.println("Press any key to continue");
+    anyKey();
+}
+
+void restartCountdown()
+{
+    for(uint8_t i = 0; i < 3; i++)
+    {
+        Serial.println(3-i);
+        delay(1000);
+    }
+    delay(1);
+    clearCryptor();
+    restart();
+}
+
+void login()
+{
+    if(keyCount <= 0)
+    {
+        Serial.println("Error. You have to add an key first.");
+        anyKey();//true to ask to press any key?
+    }
+    else
+    {
+    /*
+    ////////////end
+    
+    clearScreen();
+    Serial.println("Please type in password");
+    serialReadString(input, MAX_INPUT_SIZE, true);
+    sha3.reset();
+    sha3.update(input, strlen(input));
+    sha3.finalize(&pass_hash, HASH_SIZE);
+    clearString(input, MAX_INPUT_SIZE);
+    //dumpByteArray(pass_hash, HASH_SIZE);
+
+    // xor pass iv
+    for(int i = 0; i < HASH_SIZE; i++)
+    {
+        pass_hash[i] = pass_hash[i] ^ iv[i];
+    }
+
+    // loading bar, hash of hash
+    for(int i = 0; i < 25; i++)
+    {
+        clearScreen();
+        Serial.print('[');
+        for(int h = 0; h < i+1; h++)
+        {
+            Serial.print('#');
+        }
+        for(int h = 0; h < 25-i-1; h++)
+        {
+            Serial.print(' ');
+        }
+        Serial.println(']');
+        for(int h = 0; h < 12; h++) ///slow down 25*12
+        {
+            sha3.reset();
+            sha3.update(&pass_hash, HASH_SIZE);
+            sha3.finalize(&pass_hash, HASH_SIZE);
+        }
+    }
+    clearScreen();
+
+    printMasterKey();
+    menu();
+    */
+        if(true)//logged in
+        {
+            menu();
+        }
+        
+    }
+}
+
+void addAccount()
+{
+    if(keyCount >= MAX_KEY_COUNT)
+    {
+        Serial.println("Error. You have reached the maximum amount of keys. Please delete one first.");
+        anyKey();
+    }
+    else
+    {
+        //keyCount++ + write
+    }
+}
+
+void delAccount()
+{
+    if(keyCount <= 0)
+    {
+        Serial.println("Error. You do not have any keys yet.");
+        anyKey();
+    }
+    else
+    {
+        //keyCount-- + write
+    }
+}
+
+void menu()
+{
+    boolean inMenu = true;
+    while(inMenu)
+    {
+        //clearScreen();
+        Serial.println("Please type in name or /help for help");
+        //while(Serial.available() == 0) {}
+
+        clearString(input, MAX_INPUT_SIZE);
+        serialReadString(input, MAX_INPUT_SIZE, false);
+
+        if(strcmp(input, "/help") == 0)
+        {
+            Serial.println();
+            Serial.println("Commands:");
+            Serial.println(" /help - shows this command");
+            Serial.println(" /clear - clears the screen");
+            Serial.println(" /logout - logout and select other key");
+            Serial.println();
+        }
+        else if(strcmp(input, "/clear") == 0)
+        {
+            clearScreen();
+        }
+        else if(strcmp(input, "/logout") == 0)
+        {
+            inMenu = false;
+            clearCryptor();
+            Serial.println();
+            Serial.println("Logged out.");
+            delay(2000);
+        }
+        else if(input[0] == '/')
+        {
+            char notFound[] = "Command not found: ";
+            char all[19+MAX_INPUT_SIZE+1];
+            strcpy(all, notFound);
+            strcat(all, input);
+            Serial.println();
+            Serial.println(all);
+        }
+        else
+        {
+            sha3.reset();
+            sha3.update(&input, strlen(input)); // hash input
+            sha3.finalize(&hashed, HASH_SIZE);
+            for(int i = 0; i < HASH_SIZE; i++)
+            {
+                hashed[i] = hashed[i] ^ pass_hash[i]; // xor pass^iv        hashedxtimes
+            }
+            
+            sha3.reset();
+            sha3.update(&hashed, HASH_SIZE); // hash xored 
+            sha3.finalize(&hashed, HASH_SIZE);
+
+///////
+            char generated_pass[HASH_SIZE+1] = {0};
+            for(int i = 0; i < HASH_SIZE; i++)
+            {
+                double num = (int)hashed[i];
+                num *= 0.30196; //0.30196 * 255 = 76.999....    => int 76
+                uint8_t idx = num;
+                //Serial.print(charset[idx]);
+                generated_pass[i] = PASSWORD_CHARSET[idx];
+            }
+            generated_pass[HASH_SIZE] = '\0';
+            //Serial.println('\n');
+            Serial.println();
+            if(strlen(generated_pass) == HASH_SIZE)
+            {
+                Serial.println("[Copied] Press double CapsLock to paste!");
+    
+                BootKeyboard.begin();
+                bool pasted = false;
+                while(!pasted)
+                {
+                    //warte bis led aus
+                    if(!(BootKeyboard.getLeds() & LED_CAPS_LOCK)) // led aus
+                    {
+                        while(!(BootKeyboard.getLeds() & LED_CAPS_LOCK))
+                        {
+                            delay(50);
+                            serialReadVoid();
+                        } // warte bis led an
+                        //Serial.println("on");
+                        unsigned long timestamp = millis();
+                        bool intime = true;
+                        while(BootKeyboard.getLeds() & LED_CAPS_LOCK) // solange an
+                        {
+                                if(millis() > timestamp + 250) // und nicht länger als
+                                {
+                                    intime = false;
+                                }
+                                serialReadVoid();
+                                //delay(1);
+                        }
+                        if(intime)
+                        {
+                            BootKeyboard.end();
+                            Keyboard.begin();
+                            Keyboard.print(generated_pass);
+                            delay(750);
+                            Keyboard.end();
+                            Serial.println("[Pasted]");
+                            pasted = true;
+                            clearString(generated_pass, HASH_SIZE);
+                        }
+                        delay(50);
+                    }
+                } //</pasting>
+            }
+            else
+            {
+                Serial.println("[Error Protection] Internal error, please use another name!");
+            }
+        }
+    }
 }

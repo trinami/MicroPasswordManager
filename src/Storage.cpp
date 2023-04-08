@@ -16,7 +16,7 @@ void writeIV()
 {
     for(uint8_t i = 0; i < HASH_SIZE; i++)
     {
-        writeByte(iv[i], 2+i);
+        writeByte(2+i, iv[i]);
     }
 }
 

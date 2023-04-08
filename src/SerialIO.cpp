@@ -193,6 +193,47 @@ void restartCountdown()
     restart();
 }
 
+void masterKeyInput()
+{
+    Serial.println("reading");
+	serialReadString(input, MAX_INPUT_SIZE, true);
+	Serial.println("read ok");
+	sha3.reset();
+	sha3.update(input, strlen(input));
+	sha3.finalize(&pass_hash, HASH_SIZE);
+	clearString(input, MAX_INPUT_SIZE);
+	 
+
+	// xor pass iv
+	for(int i = 0; i < HASH_SIZE; i++)
+	{
+	    pass_hash[i] = pass_hash[i] ^ iv[i];
+	}
+
+	// loading bar, hash of hash
+	for(int i = 0; i < 25; i++)
+	{
+	    clearScreen();
+	    Serial.print('[');
+	    for(int h = 0; h < i+1; h++)
+	    {
+	        Serial.print('#');
+	    }
+	    for(int h = 0; h < 25-i-1; h++)
+	    {
+	        Serial.print(' ');
+	    }
+	    Serial.println(']');//andere speicherbereicher werden hier überschrieben?
+	    for(int h = 0; h < 1; h++) ///slow down 25*12 /////////////////// return char in serial read only if valid from charset SECURITY ISSUE??
+	    {
+	        sha3.reset();
+	        sha3.update(&pass_hash, HASH_SIZE);
+	        sha3.finalize(&pass_hash, HASH_SIZE);
+	    }
+	}
+	clearScreen();
+}
+
 void login()
 {
     if(keyCount <= 0)
@@ -202,52 +243,14 @@ void login()
     }
     else
     {
-    /*
-    ////////////end
-    
-    clearScreen();
-    Serial.println("Please type in password");
-    serialReadString(input, MAX_INPUT_SIZE, true);
-    sha3.reset();
-    sha3.update(input, strlen(input));
-    sha3.finalize(&pass_hash, HASH_SIZE);
-    clearString(input, MAX_INPUT_SIZE);
-    //dumpByteArray(pass_hash, HASH_SIZE);
-
-    // xor pass iv
-    for(int i = 0; i < HASH_SIZE; i++)
-    {
-        pass_hash[i] = pass_hash[i] ^ iv[i];
-    }
-
-    // loading bar, hash of hash
-    for(int i = 0; i < 25; i++)
-    {
         clearScreen();
-        Serial.print('[');
-        for(int h = 0; h < i+1; h++)
+        Serial.println("Please type in Master Key");
+        masterKeyInput();
+        
+        //menu();
+        if(checkKey(pass_hash[0], pass_hash[1], pass_hash[2]))//logged in
         {
-            Serial.print('#');
-        }
-        for(int h = 0; h < 25-i-1; h++)
-        {
-            Serial.print(' ');
-        }
-        Serial.println(']');
-        for(int h = 0; h < 12; h++) ///slow down 25*12
-        {
-            sha3.reset();
-            sha3.update(&pass_hash, HASH_SIZE);
-            sha3.finalize(&pass_hash, HASH_SIZE);
-        }
-    }
-    clearScreen();
-
-    printMasterKey();
-    menu();
-    */
-        if(true)//logged in
-        {
+            printMasterKey();
             menu();
         }
         
@@ -263,7 +266,21 @@ void addAccount()
     }
     else
     {
-        //keyCount++ + write
+        Serial.println("Please type in new key");
+        masterKeyInput();
+        Serial.println("checking");
+        if(checkKey(pass_hash[0], pass_hash[1], pass_hash[2]))
+        {
+            Serial.println("checked, adding");
+            addKey(pass_hash[0], pass_hash[1], pass_hash[2]);
+            Serial.println("Key added");
+            anyKey();
+        }
+        else
+        {
+            Serial.println("Error. This key already exist!");
+        }
+        //keyCount++ + write auto in add key
     }
 }
 
@@ -276,6 +293,31 @@ void delAccount()
     }
     else
     {
+        Serial.println("Please select a key to delete");
+
+        for(uint8_t i = 0; i < keyCount; i++)
+        {
+            Serial.print(" (");
+            Serial.print(i+1);
+            Serial.print(")  [");
+            uint8_t key[3] = {0};
+            key[0] = readByte(32+1+1+i*KEY_SIZE+0);
+            key[1] = readByte(32+1+1+i*KEY_SIZE+1);
+            key[2] = readByte(32+1+1+i*KEY_SIZE+2);
+            dumpByteArray(key, 3);//to hex
+            Serial.println("]");
+        }
+        uint8_t choose = getNumber();
+        if(choose > 0 && choose < keyCount)
+        {
+            delKey(choose);
+            Serial.println("Key deleted! Press any key to continue.");
+            anyKey();
+        }
+        else
+        {
+            Serial.println("Error wrong number!");
+        }
         //keyCount-- + write
     }
 }

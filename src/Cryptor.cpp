@@ -179,13 +179,86 @@ void generateIv()
 void printMasterKey()
 {
     Serial.print("[");
-    Serial.print(pass_hash[0], HEX);
-    Serial.print(pass_hash[1], HEX);
-    Serial.print(pass_hash[2] >> 4, HEX);
+    //Serial.print(pass_hash[0], HEX);
+    //Serial.print(pass_hash[1], HEX);
+    //Serial.print(pass_hash[2] >> 4, HEX);
+    dumpByteArray(pass_hash, 3);
     Serial.print("]");
+    Serial.println("");
 }
 
 void clearCryptor()
 {
   //clear pass arrays
+  
 }
+
+boolean checkKey(uint8_t byte1, uint8_t byte2, uint8_t byte3) //check if given key already exist
+{
+    for(uint8_t i = 0; i < keyCount; i++)
+    {
+        if(readByte(32+1+1+i*KEY_SIZE+0) == byte1 &&readByte(32+1+1+i*KEY_SIZE+1) == byte2 && readByte(32+1+1+i*KEY_SIZE+2) == byte3)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void addKey(uint8_t byte1, uint8_t byte2, uint8_t byte3)
+{
+    writeByte(32+1+1+keyCount*KEY_SIZE+0, byte1);
+    writeByte(32+1+1+keyCount*KEY_SIZE+1, byte2);
+    writeByte(32+1+1+keyCount*KEY_SIZE+2, byte3);
+    keyCount++;
+    setKeyCount(keyCount);
+}
+
+void moveKey(uint8_t pos_old, uint8_t pos_new)
+{
+    uint8_t tmp_key[KEY_SIZE] = {0};
+
+    for(uint8_t i = 0; i < 3; i++)
+    {
+        tmp_key[i] = readByte(32+1+1+pos_old*KEY_SIZE+i);
+        writeByte(32+1+1+pos_old*KEY_SIZE+i, readByte(32+1+1+pos_new*KEY_SIZE+i));
+        writeByte(32+1+1+pos_new*KEY_SIZE+i, tmp_key[i]);
+    }
+}
+
+void delKey(uint8_t pos)
+{
+    
+    /*fange bei pos an
+    höre bei keyCount-2 auf
+    {
+        bewege i+1 auf i
+    }*/
+
+    for(uint8_t i = pos; i < keyCount-2; i++)
+    {
+        moveKey(i+1, i);
+    }
+
+    for(uint8_t i = 0; i < KEY_SIZE; i++)
+    {
+        writeByte(pos, B11111111);
+        writeByte(pos, B00000000);
+    }
+    
+    keyCount--;
+    setKeyCount(keyCount);
+
+    //überschreibe keycount-1 mit 0
+    //ändere keycount um -1
+
+}
+/*
+kc 2 pos 1
+( ) ( ) (x)
+(x) ( ) ( )
+(a) ( ) ( )
+(b) (x) ( )
+ 1   3   0
+ */

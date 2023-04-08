@@ -59,6 +59,7 @@ void restoredMenu()
         switch(choose)
         {
             case 0:
+                Serial.end();
                 restart();
             break;
             case 1:
@@ -79,7 +80,7 @@ void setup()
     {
         ;
     }
-    delay(5000);
+    delay(5000);//flash time!!!
 
     if(isIntialized())
     {
@@ -117,6 +118,7 @@ void loop()
     char choose[1+1] = {0};
     serialReadString(choose, 1, false);
     Serial.println();
+    clearScreen();
     switch(choose[0])
     {
         case '0':

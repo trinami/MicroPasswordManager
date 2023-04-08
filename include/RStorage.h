@@ -6,7 +6,7 @@
 
 #define STORAGE_OK 0
 #define STORAGE_RESTORED 1
-#define STORAGE_NOT_INTIALIZED
+#define STORAGE_NOT_INTIALIZED 2
 #define STORAGE_INVALID 3
 
 /*____          _                 _             _     ____  _                             
@@ -22,7 +22,7 @@ void readKeyCount();
 void setKeyCount(uint8_t count);
 void resetKeyCount();
 void eraseStorage();
-void writeByte(uint8_t byte, uint16_t pos);
+void writeByte(uint16_t pos, uint8_t byte);
 uint8_t readByte(uint16_t pos);
 uint8_t checkByte(uint16_t pos);
 uint8_t checkStorage();

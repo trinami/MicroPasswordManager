@@ -23,7 +23,7 @@ void eraseStorage()
     }
 }
 
-void writeByte(uint8_t byte, uint16_t pos)
+void writeByte(uint16_t pos, uint8_t byte)
 {
     EEPROM.update(pos*3+0, byte);
     EEPROM.update(pos*3+1, byte);

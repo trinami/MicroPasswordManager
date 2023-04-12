@@ -144,7 +144,7 @@ void loop()
             {
                 eraseStorage();
                 Serial.println("Cleared. Trying to restart...");
-                restart();
+                restartCountdown();
             }
         break;
         default:

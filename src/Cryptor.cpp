@@ -15,7 +15,7 @@ boolean getRandomBit()
         bit1 = 0x1 & analogRead(A0);
         
 
-        delayMicroseconds(200);
+        delayMicroseconds(120);
         bit2 = 0x1 & analogRead(A0);
         
         if(bit1 != bit2)
@@ -24,7 +24,7 @@ boolean getRandomBit()
             return bit1;
         }
         //Serial.print(".");
-        delayMicroseconds(300);
+        delayMicroseconds(120);
     }
 }
 
@@ -146,7 +146,7 @@ bool isValidHexTokenString(const char *hexString, int size)
 void generateIv()
 {
     sha3.reset();
-    for(uint8_t i = 0; i < 3; i++)
+    for(uint8_t i = 0; i < 4; i++)
     {
       clearScreen();
       Serial.print("Detected first startup, generating new master key");

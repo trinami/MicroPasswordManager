@@ -131,6 +131,7 @@ void loop()
         break;
         case '2':
             Serial.println("WARNING! Master Key will be gone!");
+            Serial.println(" ");
             Serial.println("If you have saved the key, you can restore it later with import");
             Serial.println("Write OVERRIDE to continue");
             if(confirmString("OVERRIDE", 8))
@@ -139,7 +140,9 @@ void loop()
             }
         break;
         case '3':
-            Serial.println("WARNING! Deleting Master Key, write DELETE to continue");
+            Serial.println("WARNING! Deleting Master Key");
+            Serial.println(" ");
+            Serial.println("write DELETE to continue");
             if(confirmString("DELETE", 6))
             {
                 eraseStorage();

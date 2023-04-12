@@ -176,7 +176,6 @@ void importMKey()
     {
         Serial.println("Error, invalid Token!");
     }
-    Serial.println("Press any key to continue");
     anyKey();
 }
 

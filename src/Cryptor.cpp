@@ -12,31 +12,19 @@ boolean getRandomBit()
     while(true)
     {
         boolean bit1, bit2;
-        if(analogRead(A0) % 2 == 1)
-        {
-            bit1 = true;
-        }
-        else
-        {
-            bit1 = false;
-        }
+        bit1 = 0x1 & analogRead(A0);
         
-        delay(2);
-        
-        if(analogRead(A0) % 2 == 1)
-        {
-            bit2 = true;
-        }
-        else
-        {
-            bit2 = false;
-        }
+
+        delayMicroseconds(200);
+        bit2 = 0x1 & analogRead(A0);
         
         if(bit1 != bit2)
         {
+            //Serial.print("+");
             return bit1;
         }
-        delay(3);
+        //Serial.print(".");
+        delayMicroseconds(300);
     }
 }
 
@@ -158,11 +146,11 @@ bool isValidHexTokenString(const char *hexString, int size)
 void generateIv()
 {
     sha3.reset();
-    for(uint8_t i = 0; i < 7; i++)
+    for(uint8_t i = 0; i < 3; i++)
     {
       clearScreen();
       Serial.print("Detected first startup, generating new master key");
-      for(uint8_t h = 0; h < i/2; h++)
+      for(uint8_t h = 0; h < i; h++)
       {
         Serial.print('.');
       }
@@ -190,75 +178,11 @@ void printMasterKey()
 void clearCryptor()
 {
   //clear pass arrays
-  
+  for(uint8_t i = 0; i < HASH_SIZE; i++)
+  {
+    iv[i] = B00000000;
+    pass_hash[i] = B00000000;
+    hashed[i] = B00000000;
+    sha3.clear();
+  }
 }
-
-boolean checkKey(uint8_t byte1, uint8_t byte2, uint8_t byte3) //check if given key already exist
-{
-    for(uint8_t i = 0; i < keyCount; i++)
-    {
-        if(readByte(32+1+1+i*KEY_SIZE+0) == byte1 &&readByte(32+1+1+i*KEY_SIZE+1) == byte2 && readByte(32+1+1+i*KEY_SIZE+2) == byte3)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-void addKey(uint8_t byte1, uint8_t byte2, uint8_t byte3)
-{
-    writeByte(32+1+1+keyCount*KEY_SIZE+0, byte1);
-    writeByte(32+1+1+keyCount*KEY_SIZE+1, byte2);
-    writeByte(32+1+1+keyCount*KEY_SIZE+2, byte3);
-    keyCount++;
-    setKeyCount(keyCount);
-}
-
-void moveKey(uint8_t pos_old, uint8_t pos_new)
-{
-    uint8_t tmp_key[KEY_SIZE] = {0};
-
-    for(uint8_t i = 0; i < 3; i++)
-    {
-        tmp_key[i] = readByte(32+1+1+pos_old*KEY_SIZE+i);
-        writeByte(32+1+1+pos_old*KEY_SIZE+i, readByte(32+1+1+pos_new*KEY_SIZE+i));
-        writeByte(32+1+1+pos_new*KEY_SIZE+i, tmp_key[i]);
-    }
-}
-
-void delKey(uint8_t pos)
-{
-    
-    /*fange bei pos an
-    höre bei keyCount-2 auf
-    {
-        bewege i+1 auf i
-    }*/
-
-    for(uint8_t i = pos; i < keyCount-2; i++)
-    {
-        moveKey(i+1, i);
-    }
-
-    for(uint8_t i = 0; i < KEY_SIZE; i++)
-    {
-        writeByte(pos, B11111111);
-        writeByte(pos, B00000000);
-    }
-    
-    keyCount--;
-    setKeyCount(keyCount);
-
-    //überschreibe keycount-1 mit 0
-    //ändere keycount um -1
-
-}
-/*
-kc 2 pos 1
-( ) ( ) (x)
-(x) ( ) ( )
-(a) ( ) ( )
-(b) (x) ( )
- 1   3   0
- */

@@ -20,8 +20,6 @@ uint8_t getNumber();
 void importMKey();
 void restartCountdown();
 void login();
-void addAccount();
-void delAccount();
 void menu();
 
 #endif

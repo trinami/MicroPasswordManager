@@ -109,10 +109,9 @@ void loop()
     Serial.println("Please choose:");
     Serial.println();
     Serial.println(" (1) Login");
-    Serial.println(" (2) Add Account");
-    Serial.println(" (3) Delete Account");
-    Serial.println(" (4) Import Master Key ");
-    Serial.println(" (5) Delete Master Key and Keys");
+    Serial.println(" (2) Import Master Key ");
+    Serial.println(" (3) Delete Master Key");
+    //Serial.println(" (4) Verify");
     Serial.println();
     Serial.println(" (0) Exit");
     char choose[1+1] = {0};
@@ -131,13 +130,7 @@ void loop()
             login();
         break;
         case '2':
-            addAccount(); // input in serialio, generate in cryptor and add key in storage?!
-        break;
-        case '3':
-            delAccount();
-        break;
-        case '4':
-            Serial.println("WARNING! All current keys will be gone!");
+            Serial.println("WARNING! Master Key will be gone!");
             Serial.println("If you have saved the key, you can restore it later with import");
             Serial.println("Write OVERRIDE to continue");
             if(confirmString("OVERRIDE", 8))
@@ -145,8 +138,8 @@ void loop()
                 importMKey();
             }
         break;
-        case '5':
-            Serial.println("WARNING! Deleting all keys, write DELETE to continue");
+        case '3':
+            Serial.println("WARNING! Deleting Master Key, write DELETE to continue");
             if(confirmString("DELETE", 6))
             {
                 eraseStorage();
@@ -155,7 +148,7 @@ void loop()
             }
         break;
         default:
-            Serial.println("Error type in a number from 0 to 5");
+            Serial.println("Error type in a number from 0 to 3");
         break;
     }
 }

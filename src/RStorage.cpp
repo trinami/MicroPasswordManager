@@ -2,18 +2,6 @@
 
 #include "EEPROM.h"
 
-uint8_t keyCount = 0;
-
-void readKeyCount()
-{
-    keyCount = readByte(1);
-}
-
-void setKeyCount(uint8_t count)
-{
-    writeByte(1, count);
-}
-
 void eraseStorage()
 {
     for(uint16_t i = 0; i < STORAGE_SIZE; i++)
@@ -43,6 +31,7 @@ uint8_t readByte(uint16_t pos)
     else
     {
         error(STORAGE_INVALID);
+        return false;
     }
 }
 
@@ -84,7 +73,7 @@ uint8_t checkStorage()
 {
     uint8_t returnCode = STORAGE_OK;
 
-    for(uint16_t i = 0; i < 2+keyCount; i++)
+    for(uint16_t i = 0; i < 1+HASH_SIZE; i++)
     {
         uint8_t byteReturnCode = checkByte(i);
         if(byteReturnCode > returnCode)
@@ -103,7 +92,6 @@ uint8_t checkStorage()
 void intializeStorage()
 {
     eraseStorage();
-    setKeyCount(0);
     writeByte(0, INTIALIZED);
 }
 
@@ -113,18 +101,9 @@ bool isIntialized()
     {
         if(readByte(0) == INTIALIZED)
         {
-            if(checkByte(1) != STORAGE_INVALID)
-            {
-                keyCount = readByte(1);
-            }
-            else
-            {
-                keyCount = MAX_KEY_COUNT;
-            }
-
             return true;
         }
     }
 
     return false;
-}
+}//0x1C5A7484DF523C358DD55BB52F3B7D71138A5069F433BC10493312BCB7B6142E

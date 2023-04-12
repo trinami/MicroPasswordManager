@@ -24,9 +24,4 @@ void generateIv();
 void printMasterKey();
 void clearCryptor();
 
-boolean checkKey(uint8_t byte1, uint8_t byte2, uint8_t byte3);
-void addKey(uint8_t byte1, uint8_t byte2, uint8_t byte3);
-void moveKey(uint8_t pos_old, uint8_t pos_new);
-void delKey(uint8_t pos);
-
 #endif

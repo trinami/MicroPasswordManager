@@ -16,10 +16,6 @@
  |_| \_\___|\__,_|\__,_|_| |_|\__,_|\__,_|_| |_|\__| |____/ \__\___/|_|  \__,_|\__, |\___|
                                                                                |__*/
 
-extern uint8_t keyCount;
-
-void readKeyCount();
-void setKeyCount(uint8_t count);
 void resetKeyCount();
 void eraseStorage();
 void writeByte(uint16_t pos, uint8_t byte);

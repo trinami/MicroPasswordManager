@@ -13,7 +13,6 @@ char input[MAX_INPUT_SIZE+1] = {0};
 
 void intialize()
 {
-    setKeyCount(0);
     generateIv();
     writeIV();
     clearScreen();
@@ -195,9 +194,7 @@ void restartCountdown()
 
 void masterKeyInput()
 {
-    Serial.println("reading");
 	serialReadString(input, MAX_INPUT_SIZE, true);
-	Serial.println("read ok");
 	sha3.reset();
 	sha3.update(input, strlen(input));
 	sha3.finalize(&pass_hash, HASH_SIZE);
@@ -223,8 +220,8 @@ void masterKeyInput()
 	    {
 	        Serial.print(' ');
 	    }
-	    Serial.println(']');//andere speicherbereicher werden hier überschrieben?
-	    for(int h = 0; h < 1; h++) ///slow down 25*12 /////////////////// return char in serial read only if valid from charset SECURITY ISSUE??
+	    Serial.println(']');
+	    for(int h = 0; h < 25; h++) ///slow down 25*12 /////////////////// return char in serial read only if valid from charset SECURITY ISSUE??
 	    {
 	        sha3.reset();
 	        sha3.update(&pass_hash, HASH_SIZE);
@@ -236,90 +233,13 @@ void masterKeyInput()
 
 void login()
 {
-    if(keyCount <= 0)
-    {
-        Serial.println("Error. You have to add an key first.");
-        anyKey();//true to ask to press any key?
-    }
-    else
-    {
-        clearScreen();
-        Serial.println("Please type in Master Key");
-        masterKeyInput();
+    clearScreen();
+    Serial.println("Please type in Key");
+    masterKeyInput();
         
-        //menu();
-        if(checkKey(pass_hash[0], pass_hash[1], pass_hash[2]))//logged in
-        {
-            printMasterKey();
-            menu();
-        }
-        
-    }
-}
-
-void addAccount()
-{
-    if(keyCount >= MAX_KEY_COUNT)
-    {
-        Serial.println("Error. You have reached the maximum amount of keys. Please delete one first.");
-        anyKey();
-    }
-    else
-    {
-        Serial.println("Please type in new key");
-        masterKeyInput();
-        Serial.println("checking");
-        if(checkKey(pass_hash[0], pass_hash[1], pass_hash[2]))
-        {
-            Serial.println("checked, adding");
-            addKey(pass_hash[0], pass_hash[1], pass_hash[2]);
-            Serial.println("Key added");
-            anyKey();
-        }
-        else
-        {
-            Serial.println("Error. This key already exist!");
-        }
-        //keyCount++ + write auto in add key
-    }
-}
-
-void delAccount()
-{
-    if(keyCount <= 0)
-    {
-        Serial.println("Error. You do not have any keys yet.");
-        anyKey();
-    }
-    else
-    {
-        Serial.println("Please select a key to delete");
-
-        for(uint8_t i = 0; i < keyCount; i++)
-        {
-            Serial.print(" (");
-            Serial.print(i+1);
-            Serial.print(")  [");
-            uint8_t key[3] = {0};
-            key[0] = readByte(32+1+1+i*KEY_SIZE+0);
-            key[1] = readByte(32+1+1+i*KEY_SIZE+1);
-            key[2] = readByte(32+1+1+i*KEY_SIZE+2);
-            dumpByteArray(key, 3);//to hex
-            Serial.println("]");
-        }
-        uint8_t choose = getNumber();
-        if(choose > 0 && choose < keyCount)
-        {
-            delKey(choose);
-            Serial.println("Key deleted! Press any key to continue.");
-            anyKey();
-        }
-        else
-        {
-            Serial.println("Error wrong number!");
-        }
-        //keyCount-- + write
-    }
+    //menu();
+    printMasterKey();
+    menu();
 }
 
 void menu()
@@ -340,7 +260,7 @@ void menu()
             Serial.println("Commands:");
             Serial.println(" /help - shows this command");
             Serial.println(" /clear - clears the screen");
-            Serial.println(" /logout - logout and select other key");
+            Serial.println(" /logout - logout and return to main menu");
             Serial.println();
         }
         else if(strcmp(input, "/clear") == 0)
@@ -357,14 +277,14 @@ void menu()
         }
         else if(input[0] == '/')
         {
-            char notFound[] = "Command not found: ";
+            char notFound[] = "Command not found: ";/////////attack possible?
             char all[19+MAX_INPUT_SIZE+1];
             strcpy(all, notFound);
             strcat(all, input);
             Serial.println();
             Serial.println(all);
         }
-        else
+        else // clean up code
         {
             sha3.reset();
             sha3.update(&input, strlen(input)); // hash input

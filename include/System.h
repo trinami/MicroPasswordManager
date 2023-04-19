@@ -1,6 +1,13 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+/*____            _                 
+ / ___| _   _ ___| |_ ___ _ __ ___  
+ \___ \| | | / __| __/ _ \ '_ ` _ \ 
+  ___) | |_| \__ \ ||  __/ | | | | |
+ |____/ \__, |___/\__\___|_| |_| |_|
+        |__*/
+
 #include "Arduino.h"
 
 // Storage Settings
@@ -24,6 +31,7 @@
 #define RSTORAGE_SIZE STORAGE_SIZE/3
 const int HASH_SIZE = HASH_BIT_SIZE/8;
 #define MAX_KEY_COUNT (RSTORAGE_SIZE - 2 - HASH_SIZE)/KEY_SIZE
+
 
 void restart();
 void error(uint8_t code);

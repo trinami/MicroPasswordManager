@@ -1,9 +1,14 @@
 #include "System.h"
+#include "Cryptor.h"
 
 #include <avr/wdt.h>
 
 void restart()
 {
+    Serial.end();
+    
+    clearCryptor();
+
     wdt_enable(WDTO_15MS);
     
     while(true)
@@ -14,6 +19,8 @@ void restart()
 
 void error(uint8_t code)
 {
+    clearCryptor();
+
     Serial.println("Error: ");
     switch(code)
     {

@@ -59,7 +59,6 @@ void restoredMenu()
         switch(choose)
         {
             case 0:
-                Serial.end();
                 restart();
             break;
             case 1:
@@ -99,7 +98,7 @@ void setup()
         intialize();
     }
 
-    readStorage();//isnt that intialize?? or just readiv because keyvount read?
+    readIV();
 }
 
 void loop()
@@ -123,7 +122,6 @@ void loop()
         case '0':
             //EEPROM.write(3*HASH_SIZE+1, key_count)
             //overwrite buffers
-            clearCryptor();
             restart();
         break;
         case '1':

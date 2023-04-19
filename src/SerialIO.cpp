@@ -103,12 +103,11 @@ void clearString(char *string, int size)
 {
     for(uint8_t i = 0; i < size; i++)
     {
-        string[i] = B10101010;
+        string[i] = B01010101;
         delay(1);
+        string[i] = B10101010;
     }
     string[0] = '\0';
-    //memset(string, 0, sizeof(string));
-    //string = {0};
 }
 
 
@@ -163,7 +162,7 @@ uint8_t getNumber()
 void importMKey()
 {
     Serial.println("Please type in the key to import:");
-    serialReadString(input, MAX_INPUT_SIZE, false);
+    serialReadString(input, HASH_SIZE*2 + 2, false);
     Serial.println();
     if(isValidHexTokenString(input, strlen(input)))
     {
@@ -186,8 +185,6 @@ void restartCountdown()
         Serial.println(3-i);
         delay(1000);
     }
-    delay(1);
-    clearCryptor();
     restart();
 }
 
@@ -299,15 +296,7 @@ void menu()
 
 ///////
             char generated_pass[HASH_SIZE+1] = {0};
-            for(int i = 0; i < HASH_SIZE; i++)
-            {
-                double num = (int)hashed[i];
-                num *= 0.30196; //0.30196 * 255 = 76.999....    => int 76
-                uint8_t idx = num;
-                //Serial.print(charset[idx]);
-                generated_pass[i] = PASSWORD_CHARSET[idx];
-            }
-            generated_pass[HASH_SIZE] = '\0';
+            hashToPass(hashed, generated_pass);
             //Serial.println('\n');
             Serial.println();
             if(strlen(generated_pass) == HASH_SIZE)
@@ -331,19 +320,20 @@ void menu()
                         bool intime = true;
                         while(BootKeyboard.getLeds() & LED_CAPS_LOCK) // solange an
                         {
-                                if(millis() > timestamp + 250) // und nicht länger als
-                                {
-                                    intime = false;
-                                }
-                                serialReadVoid();
-                                //delay(1);
+                            if(millis() > timestamp + 250) // und nicht länger als
+                            {
+                                intime = false;
+                            }
+                            serialReadVoid();
+                            //delay(1);
                         }
                         if(intime)
                         {
                             BootKeyboard.end();
                             Keyboard.begin();
+                            delay(50);
                             Keyboard.print(generated_pass);
-                            delay(750);
+                            delay(400);
                             Keyboard.end();
                             Serial.println("[Pasted]");
                             pasted = true;

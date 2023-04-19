@@ -1,9 +1,15 @@
 #ifndef SERIALIO_H
 #define SERIALIO_H
 
-#include "Arduino.h"
+/*____            _       _ ___ ___  
+ / ___|  ___ _ __(_) __ _| |_ _/ _ \ 
+ \___ \ / _ \ '__| |/ _` | || | | | |
+  ___) |  __/ |  | | (_| | || | |_| |
+ |____/ \___|_|  |_|\__,_|_|___\__*/
 
+#include "Arduino.h"
 #include "System.h"
+
 
 extern char input[MAX_INPUT_SIZE+1];
 

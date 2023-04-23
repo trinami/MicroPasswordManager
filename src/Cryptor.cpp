@@ -190,10 +190,9 @@ void hashToPass(uint8_t *hash, char *pass)
 {
     for(int i = 0; i < HASH_SIZE; i++)
     {
-        double num = (int)hash[i];
-        num *= 0.30196; //e.g. 0.30196 * 255 = 76.999....    => int 76
-        uint8_t idx = num;
+        uint8_t idx = map(hash[i], 0, 255, 0, strlen(PASSWORD_CHARSET));
         pass[i] = PASSWORD_CHARSET[idx];
     }
+    
     pass[HASH_SIZE] = '\0';
 }
